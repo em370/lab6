@@ -38,13 +38,16 @@ object Lab6 extends jsy.util.JsyApplication with Lab6Like {
   def foldLeftAndThen[A,B](t: Tree)(z: A)(f: (A,Int) => A)(sc: A => B): B = {
     def loop(acc: A, t: Tree)(sc: A => B): B = t match{
       case Empty => sc(acc)
-      case Node(l, d, r) => loop(acc,l)((acc) => loop(f(acc,d),r)(sc))
+      case Node(l, d, r) => loop(acc,l)(acc => loop(f(acc,d),r)(sc))
     }
     loop(z, t)(sc)
   }
 
   def dfs[A](t: Tree)(f: Int => Boolean)(sc: List[Int] => A)(fc: () => A): A = {
-    def loop(path: List[Int], t: Tree)(fc: () => A): A = ???
+    def loop(path: List[Int], t: Tree)(fc: () => A): A = t match {
+      case Empty => fc()
+      case Node(l,d,r) => if(f(d)) sc(d::path) else loop(d::path, l)(() => loop(d::path, r)(fc))
+    }
     loop(Nil, t)(fc)
   }
 
@@ -131,12 +134,12 @@ object Lab6 extends jsy.util.JsyApplication with Lab6Like {
     */
   def test(re: RegExpr, chars: List[Char])(sc: List[Char] => Boolean): Boolean = (re, chars) match {
     /* Basic Operators */
-    case (RNoString, _) => ???
-    case (REmptyString, _) => ???
-    case (RSingle(_), Nil) => ???
-    case (RSingle(c1), c2 :: t) => ???
-    case (RConcat(re1, re2), _) => ???
-    case (RUnion(re1, re2), _) => ???
+    case (RNoString, _) => false
+    case (REmptyString, _) => sc(chars)
+    case (RSingle(_), Nil) => true
+    case (RSingle(c1), c2 :: t) => if(c1 == c2) sc(t) else false
+    case (RConcat(re1, re2), _) => test(re1,chars)(rchars => test(re2,rchars)(sc))
+    case (RUnion(re1, re2), _) => test(re1,chars)(sc) || test(re1,chars)(sc)
     case (RStar(re1), _) => ???
 
     /* Extended Operators */
