@@ -136,24 +136,24 @@ object Lab6 extends jsy.util.JsyApplication with Lab6Like {
     /* Basic Operators */
     case (RNoString, _) => false
     case (REmptyString, _) => sc(chars)
-    case (RSingle(_), Nil) => true
-    case (RSingle(c1), c2 :: t) => if(c1 == c2) sc(t) else false
+    case (RSingle(_), Nil) => false
+    case (RSingle(c1), c2 :: t) => if(c1 == c2) test(REmptyString,t)(sc) else false
     case (RConcat(re1, re2), _) => test(re1,chars)(rchars => test(re2,rchars)(sc))
-    case (RUnion(re1, re2), _) => test(re1,chars)(sc) || test(re1,chars)(sc)
-    case (RStar(re1), _) => ???
+    case (RUnion(re1, re2), _) => test(re1,chars)(sc) || test(re2,chars)(sc)
+    case (RStar(re1), _) => test(RUnion(REmptyString, RConcat(re1,RStar(re1))),chars)(sc)
 
     /* Extended Operators */
     case (RAnyChar, Nil) => false
-    case (RAnyChar, _ :: t) => ???
-    case (RPlus(re1), _) => ???
-    case (ROption(re1), _) => ???
+    case (RAnyChar, _ :: t) => sc(t)
+    case (RPlus(re1), _) => test(RConcat(re1,RStar(re1)),chars)(sc)
+    case (ROption(re1), _) => test(RUnion(REmptyString,re1),chars)(sc)
 
     /***** Extra Credit Cases *****/
-    case (RIntersect(re1, re2), _) => ???
-    case (RNeg(re1), _) => ???
+    case (RIntersect(re1, re2), _) => test(re1,chars)(sc) && test(re2,chars)(sc)
+    case (RNeg(re1), _) => !(test(re1,chars)(sc))
   }
 
-  def retest(re: RegExpr, s: String): Boolean = test(re, s.toList) { chars => ??? }
+  def retest(re: RegExpr, s: String): Boolean = test(re, s.toList) { chars => chars.isEmpty }
 
 
   /*******************************/
